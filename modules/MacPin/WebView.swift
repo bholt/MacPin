@@ -162,7 +162,10 @@ import JavaScriptCore
 		gotoURL(url)
 	}
 
-	override var description: String { return "\(reflect(self).summary) `\(title ?? String())` [\(URL ?? String())]" }
+	override var description: String {
+    let mirror = Mirror(reflecting: self)
+    return "\(mirror.description) `\(title ?? String())` [\(URL ?? String())]"
+  }
 	deinit { warn(description) }
 
 	func evalJS(js: String, _ withCallback: JSValue? = nil) {
@@ -173,7 +176,7 @@ import JavaScriptCore
 				//withCallback.callWithArguments([result, exception]) // crashes, need to translate exception into something javascripty
 				warn("callback() ~> \(result),\(exception)")
 				if result != nil {
-					callback.callWithArguments([result, true]) // unowning withCallback causes a crash and weaking it muffs the call
+					callback.callWithArguments([result!, true]) // unowning withCallback causes a crash and weaking it muffs the call
 				} else {
 					// passing nil crashes
 					callback.callWithArguments([JSValue(nullInContext: callback.context), true])
@@ -196,7 +199,7 @@ import JavaScriptCore
 					//withCallback.callWithArguments([result, exception]) // crashes, need to translate exception into something javascripty
 					warn("callback() ~> \(result),\(exception)")
 					if result != nil {
-						callback.callWithArguments([result, true]) // unowning withCallback causes a crash and weaking it muffs the call
+						callback.callWithArguments([result!, true]) // unowning withCallback causes a crash and weaking it muffs the call
 					} else {
 						// passing nil crashes
 						callback.callWithArguments([JSValue(nullInContext: callback.context), true])
@@ -229,7 +232,7 @@ import JavaScriptCore
 	}
 
 	func scrapeIcon() { // extract icon location from current webpage and initiate retrieval
-		evaluateJavaScript("if (icon = document.head.querySelector('link[rel$=icon]')) { icon.href };", completionHandler:{ [unowned self] (result: AnyObject!, exception: NSError!) -> Void in
+		evaluateJavaScript("if (icon = document.head.querySelector('link[rel$=icon]')) { icon.href };", completionHandler:{ [unowned self] (result: AnyObject?, exception: NSError?) -> Void in
 			if let href = result as? String { // got link for icon or apple-touch-icon from DOM
 				self.loadIcon(href)
 			} else if let url = self.URL, iconurlp = NSURLComponents(URL: url, resolvingAgainstBaseURL: false) where !((iconurlp.host ?? "").isEmpty) {
@@ -265,7 +268,7 @@ import JavaScriptCore
 
 	func REPL() {
 		termiosREPL({ (line: String) -> Void in
-			self.evaluateJavaScript(line, completionHandler:{ [unowned self] (result: AnyObject!, exception: NSError!) -> Void in
+			self.evaluateJavaScript(line, completionHandler:{ [] (result: AnyObject?, exception: NSError?) -> Void in
 				Swift.print(result)
 				Swift.print(exception)
 			})
@@ -279,7 +282,7 @@ import JavaScriptCore
 			//pop open a save Panel to dump data into file
 			let saveDialog = NSSavePanel();
 			saveDialog.canCreateDirectories = true
-			saveDialog.allowedFileTypes = [kUTTypeWebArchive]
+			saveDialog.allowedFileTypes = [kUTTypeWebArchive as String]
 			if let window = self.window {
 				saveDialog.beginSheetModalForWindow(window) { (result: Int) -> Void in
 					if let url = saveDialog.URL, path = url.path where result == NSFileHandlingPanelOKButton {

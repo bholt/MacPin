@@ -141,8 +141,8 @@ extension AppDelegateOSX: NSApplicationDelegate {
 #endif
 		app!.mainMenu?.addItem(dbgMenu)
 
-		var origDnD = class_getInstanceMethod(WKView.self, "performDragOperation:")
-		var newDnD = class_getInstanceMethod(WKView.self, "shimmedPerformDragOperation:")
+		let origDnD = class_getInstanceMethod(WKView.self, "performDragOperation:")
+		let newDnD = class_getInstanceMethod(WKView.self, "shimmedPerformDragOperation:")
 		method_exchangeImplementations(origDnD, newDnD) //swizzle that shizzle to enable logging of DnD's
 
 		windowController.window?.initialFirstResponder = browserController.view // should defer to selectedTab.initialFirstRepsonder
@@ -216,7 +216,7 @@ extension AppDelegateOSX: NSApplicationDelegate {
 		// not in iOS: http://stackoverflow.com/a/13083203/3878712
 		// NOPE, this can cause loops warn("`\(error.localizedDescription)` [\(error.domain)] [\(error.code)] `\(error.localizedFailureReason ?? String())` : \(error.userInfo)")
 		if error.domain == NSURLErrorDomain {
-			if let userInfo = error.userInfo {
+			let userInfo = error.userInfo
 				if let errstr = userInfo[NSLocalizedDescriptionKey] as? String {
 					if let url = userInfo[NSURLErrorFailingURLStringErrorKey] as? String {
 						var newUserInfo = userInfo
@@ -225,7 +225,7 @@ extension AppDelegateOSX: NSApplicationDelegate {
 						return newerror
 					}
 				}
-			}
+			
 		}
 		return error
 	}
@@ -311,14 +311,15 @@ extension AppDelegateOSX: NSWindowRestoration {
 // modules/WebKitPrivates/_WKDownloadDelegate.h
 // https://github.com/WebKit/webkit/blob/master/Source/WebKit2/UIProcess/Cocoa/DownloadClient.mm
 // https://github.com/WebKit/webkit/blob/master/Tools/TestWebKitAPI/Tests/WebKit2Cocoa/Download.mm
-extension AppDelegateOSX: _WKDownloadDelegate {
+extension AppDelegateOSX {
 	override func _download(download: _WKDownload!, decideDestinationWithSuggestedFilename filename: String!, allowOverwrite: UnsafeMutablePointer<ObjCBool>) -> String! {
 		warn(download.description)
 		//pop open a save Panel to dump data into file
 		let saveDialog = NSSavePanel();
 		saveDialog.canCreateDirectories = true
 		saveDialog.nameFieldStringValue = filename
-		if let app = NSApplication.sharedApplication().delegate as? AppDelegateOSX, let window = app.windowController.window {
+		if let _ = NSApplication.sharedApplication().delegate as? AppDelegateOSX {
+      // let window = app.windowController.window {
 			let result = saveDialog.runModal()
 			if let url = saveDialog.URL, path = url.path where result == NSFileHandlingPanelOKButton {
 				warn(path)

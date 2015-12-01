@@ -43,7 +43,7 @@ func assert(condition: @autoclosure () -> Bool, _ message: String = "",
 func loadUserScriptFromBundle(basename: String, webctl: WKUserContentController, inject: WKUserScriptInjectionTime, onlyForTop: Bool = true, error: NSErrorPointer? = nil) -> Bool {
 	if let scriptUrl = NSBundle.mainBundle().URLForResource(basename, withExtension: "js") where !basename.isEmpty {
 		warn("loading userscript: \(scriptUrl)")
-		var script = WKUserScript(
+		let script = WKUserScript(
 			source: (try! NSString(contentsOfURL: scriptUrl, encoding: NSUTF8StringEncoding)) as String,
 		    injectionTime: inject,
 		    forMainFrameOnly: onlyForTop
@@ -99,7 +99,7 @@ func validateURL(urlstr: String) -> NSURL? { // fallback: (String -> NSURL?)? = 
 	// maybe its a search query? check if blank and reformat it
 	// FIXME: this should get refactored to a browserController/OmniBoxController closure thats passed as fallback?
 	if !urlstr.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet()).isEmpty,
-		let query = urlstr.stringByAddingPercentEscapesUsingEncoding(NSUTF8StringEncoding),
+		let query = urlstr.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.alphanumericCharacterSet()),
 		let search = NSURL(string: "https://duckduckgo.com/?q=\(query)") {
 			return search
 		}

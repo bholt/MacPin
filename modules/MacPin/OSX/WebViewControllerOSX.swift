@@ -12,7 +12,7 @@ import WebKitPrivates
 		//^ default=true:  https://github.com/WebKit/webkit/blob/master/Source/WebKit2/UIProcess/API/mac/WKView.mm#L3641
 		view.autoresizingMask = [.ViewWidthSizable, .ViewHeightSizable]
 
-		if let wkview = view.subviews.first as? WKView {
+		if let _ = view.subviews.first as? WKView {
 			//wkview.setValue(false, forKey: "shouldExpandToViewHeightForAutoLayout") //KVO
 			//wkview.shouldExpandToViewHeightForAutoLayout = false
 			//wkview.postsFrameChangedNotifications = false //FIXME stop webinspector flicker?
@@ -96,11 +96,10 @@ extension WebViewControllerOSX: NSMenuDelegate {
 	func menuNeedsUpdate(menu: NSMenu) {
 		//if menu.tag == 1 //backlist
 		for histItem in webview.backForwardList.backList {
-			if let histItem = histItem as? WKBackForwardListItem {
+			let histItem = histItem as WKBackForwardListItem
 				let mi = NSMenuItem(title:(histItem.title ?? histItem.URL.absoluteString), action:Selector("gotoHistoryMenuURL:"), keyEquivalent:"" )
 				mi.representedObject = histItem.URL
 				mi.target = self
-			}
 		}
 	}
 }
@@ -143,7 +142,7 @@ extension WebViewControllerOSX { // AppGUI funcs
 	}
 
 	func popupMenu(items: [String: String]) { // trigger a menu @ OSX right-click & iOS longPress point
-		var menu = NSMenu(title:"popup")
+    // var menu = NSMenu(title:"popup")
 		// items: [itemTitle:String eventName:String], when clicked, fire event in jsdelegate?
 		//menu.popUpMenu(menu.itemArray.first, atLocation: NSPointFromCGPoint(CGPointMake(0,0)), inView: self.view)
 	}

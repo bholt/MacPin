@@ -21,7 +21,7 @@ struct WeakThing<T: AnyObject> {
 	var isToolbarShown: Bool { get set }
 	//var tabs: [AnyObject] { get } // alias to childViewControllers
 	var tabs: [MPWebView] { get set }
-	var childViewControllers: [AnyObject] { get set } // .push() doesn't work nor trigger property observer
+	var childViewControllers: [NSViewController] { get set } // .push() doesn't work nor trigger property observer
 	var tabSelected: AnyObject? { get set }
     //var matchedAddressOptions: [String:String] { get set }
 	func pushTab(webview: AnyObject) // JSExport does not seem to like signatures with custom types
@@ -85,11 +85,11 @@ struct WeakThing<T: AnyObject> {
 	}
 
 	override func removeTabViewItem(tab: NSTabViewItem) {
-		if let view = tab.view {
+		if let _ = tab.view {
 			tab.initialFirstResponder = nil
 			tab.unbind(NSLabelBinding)
 			tab.unbind(NSToolTipBinding)
-			if let wvc = tab.viewController as? WebViewController { tab.unbind(NSImageBinding) }
+			if let _ = tab.viewController as? WebViewController { tab.unbind(NSImageBinding) }
 			tab.label = ""
 			tab.toolTip = nil
 			tab.image = nil
@@ -101,7 +101,7 @@ struct WeakThing<T: AnyObject> {
 	override func tabView(tabView: NSTabView, willSelectTabViewItem tabViewItem: NSTabViewItem?) {
 		super.tabView(tabView, willSelectTabViewItem: tabViewItem)
 		//if omnibox.webview != nil { omnibox.unbind("webview") }
-		if let wv = tabViewItem.view as? MPWebView {
+		if let wv = tabViewItem?.view as? MPWebView {
 			//omnibox.bind("webview", toObject: tabViewItem, withKeyPath: "view", options: nil)
 			omnibox.webview = wv
 		}
@@ -109,7 +109,7 @@ struct WeakThing<T: AnyObject> {
 
 	override func tabView(tabView: NSTabView, didSelectTabViewItem tabViewItem: NSTabViewItem?) {
 		super.tabView(tabView, didSelectTabViewItem: tabViewItem)
-		if let window = view.window, view = tabViewItem.view {
+		if let window = view.window, view = tabViewItem?.view {
 			window.makeFirstResponder(view) // steal app focus to whatever the tab represents
 		}
 	}
@@ -158,7 +158,7 @@ struct WeakThing<T: AnyObject> {
 			ti.paletteLabel = itemIdentifier
 
 			let btn = NSButton()
-			let btnCell = btn.cell as! NSButtonCell
+      // let btnCell = btn.cell as! NSButtonCell
 			//btnCell.controlSize = .SmallControlSize
 			btn.toolTip = itemIdentifier
 			btn.image = NSImage(named: NSImageNamePreferencesGeneral) // https://hetima.github.io/fucking_nsimage_syntax/
@@ -317,7 +317,10 @@ class BrowserViewController: TabViewController, BrowserScriptExports {
 	}
 
 	deinit { warn(description) }
-	override var description: String { return "<\(reflect(self).summary)> `\(title ?? String())`" }
+	override var description: String {
+    let mirror = Mirror(reflecting: self)
+    return "<\(mirror.description)> `\(title ?? String())`"
+  }
 
 	var defaultUserAgent: String? = nil // {
 	//	get { }
@@ -326,7 +329,7 @@ class BrowserViewController: TabViewController, BrowserScriptExports {
 	// https://github.com/WebKit/webkit/blob/master/Source/WebCore/page/mac/UserAgentMac.mm
 
 	var isFullscreen: Bool {
-		get { return (view.window?.contentView as? NSView)?.inFullScreenMode ?? false }
+		get { return (view.window?.contentView! as NSView?)!.inFullScreenMode ?? false }
 		set(bool) { if bool != isFullscreen { view.window!.toggleFullScreen(nil) } }
 	}
 
@@ -365,7 +368,7 @@ class BrowserViewController: TabViewController, BrowserScriptExports {
 */
 
 	var tabs: [MPWebView] {
-		get { return childViewControllers.filter({ $0 is WebViewControllerOSX }).map({ $0.webview }) } // returns mutable *copy*, which is why .push() can't work
+		get { return childViewControllers.filter({ $0 is WebViewControllerOSX }).map({ ($0 as! WebViewControllerOSX).webview }) } // returns mutable *copy*, which is why .push() can't work
 			// ^ put an observer on childViewController to update a weak stored array of WebViews, or do that as part of add/removeChildVC()
 			// then you have a stable reference that you can have JS do .push()s on
 
@@ -393,10 +396,9 @@ class BrowserViewController: TabViewController, BrowserScriptExports {
 	var tabSelected: AnyObject? {
 		get {
 			if selectedTabViewItemIndex == -1 { return nil } // no tabs? bupkiss!
-			if let vc = childViewControllers[selectedTabViewItemIndex] as? NSViewController {
+			let vc = childViewControllers[selectedTabViewItemIndex] as NSViewController
 				if let obj: AnyObject = vc.representedObject { return obj } // try returning an actual model first
 				return vc
-			}
 			return nil
 		}
 		set(obj) {

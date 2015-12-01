@@ -33,18 +33,18 @@ extension NSPasteboard {
 		if let items = self.pasteboardItems {
 			for item in items {
 				warn("\n")
-				if let types = item.types as? [NSString] {
+				let types = item.types as [String]
 					warn(types.description)
 					for uti in types { // https://developer.apple.com/library/mac/documentation/MobileCoreServices/Reference/UTTypeRef/
 						// https://developer.apple.com/library/mac/documentation/Miscellaneous/Reference/UTIRef/Articles/System-DeclaredUniformTypeIdentifiers.html
 						// http://arstechnica.com/apple/2005/04/macosx-10-4/11/ http://www.cocoanetics.com/2012/09/fun-with-uti/
-						if !uti.description.isEmpty, let value = item.stringForType(uti.description) {
-					 		if var cfdesc = UTTypeCopyDescription(uti as CFString), var cfmime = UTTypeCopyPreferredTagWithClass(uti as CFString, kUTTagClassMIMEType) {
-								var desc = cfdesc.takeUnretainedValue()
-								var mime = cfmime.takeUnretainedValue()
+						if !uti.isEmpty, let value = item.stringForType(uti) {
+					 		if let cfdesc = UTTypeCopyDescription(uti as CFString), let cfmime = UTTypeCopyPreferredTagWithClass(uti as CFString, kUTTagClassMIMEType) {
+								let desc = cfdesc.takeUnretainedValue()
+								let mime = cfmime.takeUnretainedValue()
 								warn("DnD: uti(\(uti)) `\(desc)` => types['\(mime)'] = '\(value)'")
-							} else if var cftype = UTTypeCopyDescription(uti as CFString) {
-								var type = cftype.takeUnretainedValue()
+							} else if let cftype = UTTypeCopyDescription(uti as CFString) {
+								let type = cftype.takeUnretainedValue()
 								warn("DnD: uti(\(uti)) [\(type)] = '\(value)'")
 							} else {
 								warn("DnD: uti(\(uti)) = '\(value)'")
@@ -52,7 +52,6 @@ extension NSPasteboard {
 							} //O
 						} //M
 					} //G
-				} //W
 			} //T
 		} //F
 	} //PewPewDIE!@#$!$#!@
@@ -61,12 +60,12 @@ extension NSPasteboard {
 		// extracts any URLs dragged in, and makes the pasteboard writeable whilst restoring most of the original contents
 		//var urls: [NSURL] = []
 
-		var apsfctype = dataForType(kPasteboardTypeFilePromiseContent as String) //"com.apple.pasteboard.promised-file-content-type")
-		var apsfurl = dataForType(kPasteboardTypeFileURLPromise as String) //"com.apple.pasteboard.promised-file-url")
-		var urlstr = stringForType(kUTTypeURL as String)
-		var urlname = stringForType("public.url-name" as String)
-		var str = stringForType(NSStringPboardType as String)
-		var wkurls = WebURLsWithTitles.URLsFromPasteboard(self)
+		let apsfctype = dataForType(kPasteboardTypeFilePromiseContent as String) //"com.apple.pasteboard.promised-file-content-type")
+		let apsfurl = dataForType(kPasteboardTypeFileURLPromise as String) //"com.apple.pasteboard.promised-file-url")
+    // var urlstr = stringForType(kUTTypeURL as String)
+    // var urlname = stringForType("public.url-name" as String)
+		let str = stringForType(NSStringPboardType as String)
+		let wkurls = WebURLsWithTitles.URLsFromPasteboard(self)
 
 		if let urls = readObjectsForClasses([NSURL.self], options: nil) as? [NSURL] {
 			clearContents() // have to wipe it clean in order to modify
@@ -145,9 +144,9 @@ extension WKView {
 	// this mess ain't funny: https://hsivonen.fi/kesakoodi/clipboard/
 	func shimmedPerformDragOperation(sender: NSDraggingInfo) -> Bool {
 		if sender.draggingSource() == nil { //dragged from external application
-			var pboard = sender.draggingPasteboard()
+			let pboard = sender.draggingPasteboard()
 
-			if var file = pboard.stringForType(kUTTypeFileURL as String) { //drops from Finder
+			if let file = pboard.stringForType(kUTTypeFileURL as String) { //drops from Finder
 				warn("DnD: file from Finder: \(file)")
 			} else {
 				pboard.dump()

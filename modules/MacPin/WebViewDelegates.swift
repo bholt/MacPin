@@ -70,8 +70,9 @@ extension WebViewController: WKNavigationDelegate {
 	}
 
 	func webView(webView: WKWebView, decidePolicyForNavigationAction navigationAction: WKNavigationAction, decisionHandler: (WKNavigationActionPolicy) -> Void) {
-		let url = navigationAction.request.URL
-		if let url = url, scheme = url.scheme {
+		let _url = navigationAction.request.URL
+		if let url = _url {
+      let scheme = url.scheme
 			switch scheme {
 				case "data": fallthrough
 				case "file": fallthrough
@@ -114,7 +115,7 @@ extension WebViewController: WKNavigationDelegate {
 			}
 		} else {
 			// invalid url? should raise error
-			warn("navType:\(navigationAction.navigationType.rawValue) sourceFrame:(\(navigationAction.sourceFrame?.request.URL)) -> \(url)")
+			warn("navType:\(navigationAction.navigationType.rawValue) sourceFrame:(\(navigationAction.sourceFrame.request.URL)) -> \(_url)")
 			decisionHandler(.Cancel)
 			//decisionHandler(WKNavigationActionPolicy._WKNavigationActionPolicyDownload);
 		}
@@ -142,19 +143,19 @@ extension WebViewController: WKNavigationDelegate {
 		let mime = navigationResponse.response.MIMEType!
 		let url = navigationResponse.response.URL!
 		let fn = navigationResponse.response.suggestedFilename!
-		let len = navigationResponse.response.expectedContentLength
-		let enc = navigationResponse.response.textEncodingName
+    // let len = navigationResponse.response.expectedContentLength
+    // let enc = navigationResponse.response.textEncodingName
 
 		if jsdelegate.tryFunc("decideNavigationForMIME", mime, url.description) { decisionHandler(.Cancel); return } //FIXME perf hit?
 
 		// if explicitly attached as file, download it
 		if let httpResponse = navigationResponse.response as? NSHTTPURLResponse {
-			let code = httpResponse.statusCode
-			let status = NSHTTPURLResponse.localizedStringForStatusCode(code)
+      // let code = httpResponse.statusCode
+      // let status = NSHTTPURLResponse.localizedStringForStatusCode(code)
 			//let hdr = resp.allHeaderFields
 			//if let cd = hdr.objectForKey("Content-Disposition") as? String where cd.hasPrefix("attachment") { warn("got attachment! \(cd) \(fn)") }
 			if let headers = httpResponse.allHeaderFields as? [String: String], url = httpResponse.URL {
-				if let cookies = NSHTTPCookie.cookiesWithResponseHeaderFields(headers, forURL: url) as? [NSHTTPCookie] {
+				if let cookies = NSHTTPCookie.cookiesWithResponseHeaderFields(headers, forURL: url) as [NSHTTPCookie]? {
 					for cookie in cookies {
 						//warn("Recv'd cookie[\(cookie.name)]: \(cookie.value)")
 						warn(cookie.description)
@@ -172,7 +173,7 @@ extension WebViewController: WKNavigationDelegate {
 
 		if !navigationResponse.canShowMIMEType {
 			if !jsdelegate.tryFunc("handleUnrenderableMIME", mime, url.description, fn) {
-				let uti = UTI(MIMEType: mime) 
+        // let uti = UTI(MIMEType: mime)
 				warn("cannot render requested MIME-type:\(mime) @ \(url)")
 				// if scheme is not http|https && askToOpenURL(url)
 					 // .Cancel & return if we did open()'d
@@ -225,7 +226,7 @@ extension WebViewController: WKNavigationDelegate {
 		let srcurl = navigationAction.sourceFrame.request.URL ?? NSURL(string:String())!
 		let openurl = navigationAction.request.URL ?? NSURL(string:String())!
 		let tgt = (navigationAction.targetFrame == nil) ? NSURL(string:String())! : navigationAction.targetFrame!.request.URL
-		let tgtdom = navigationAction.targetFrame?.request.mainDocumentURL ?? NSURL(string:String())!
+    // let tgtdom = navigationAction.targetFrame?.request.mainDocumentURL ?? NSURL(string:String())!
 		//^tgt is given as a string in JS and WKWebView synthesizes a WKFrameInfo from it _IF_ it matches an iframe title in the DOM
 		// otherwise == nil
 		// RDAR? would like the tgt string to be passed here
@@ -237,7 +238,7 @@ extension WebViewController: WKNavigationDelegate {
 #if os(OSX)
 		if (windowFeatures.allowsResizing ?? 0) == 1 {
 			if let window = view.window {
-				var newframe = CGRect(
+				let newframe = CGRect(
 					x: CGFloat(windowFeatures.x ?? window.frame.origin.x as NSNumber),
 					y: CGFloat(windowFeatures.y ?? window.frame.origin.y as NSNumber),
 					width: CGFloat(windowFeatures.width ?? window.frame.size.width as NSNumber),

@@ -26,7 +26,7 @@ extension JSValue {
 	func tryFunc (method: String, argv: [AnyObject]) -> Bool {
 		if self.isObject && self.hasProperty(method) {
 			warn("this.\(method) <- \(argv)")
-			var ret = self.invokeMethod(method, withArguments: argv)
+			let ret = self.invokeMethod(method, withArguments: argv)
 			if let bool = ret.toObject() as? Bool { return bool }
 		}
 		return false
@@ -108,8 +108,8 @@ class AppScriptRuntime: NSObject, AppScriptExports  {
 		context.objectForKeyedSubscript("$").setObject(SSKeychain.self, forKeyedSubscript: "keychain")
 
 		// set console.log to NSBlock that will call warn()
-		let logger: @objc_block String -> Void = { msg in warn(msg) }
-		let dumper: @objc_block AnyObject -> Void = { obj in dump(obj) }
+		let logger: @convention(block) String -> Void = { msg in warn(msg) }
+		let _: @convention(block) AnyObject -> Void = { obj in dump(obj) }
 		context.evaluateScript("console = {};") // console global
 		context.objectForKeyedSubscript("console").setObject(unsafeBitCast(logger, AnyObject.self), forKeyedSubscript: "log")
 		context.objectForKeyedSubscript("console").setObject(unsafeBitCast(logger, AnyObject.self), forKeyedSubscript: "dump")
@@ -117,7 +117,10 @@ class AppScriptRuntime: NSObject, AppScriptExports  {
 		super.init()
 	}
 
-	override var description: String { return "<\(reflect(self).summary)> [\(appPath)] `\(context.name)`" }
+	override var description: String {
+    let mirror = Mirror(reflecting: self)
+    return "<\(mirror.description)> [\(appPath)] `\(context.name)`"
+  }
 
 	func sleep(secs: Double) {
 		let delayTime = dispatch_time(DISPATCH_TIME_NOW, Int64(Double(NSEC_PER_SEC) * secs))
@@ -178,7 +181,7 @@ class AppScriptRuntime: NSObject, AppScriptExports  {
 			// https://github.com/facebook/react-native/blob/master/React/Executors/RCTContextExecutor.m#L304
 			// https://github.com/facebook/react-native/blob/0fbe0913042e314345f6a033a3681372c741466b/React/Executors/RCTContextExecutor.m#L175
 
-			var exception = JSValue()
+			let exception = JSValue()
 
 			if JSCheckScriptSyntax(
 				/*ctx:*/ context.JSGlobalContextRef,
@@ -269,7 +272,7 @@ class AppScriptRuntime: NSObject, AppScriptExports  {
 		// there *could* be an API for this in WebKit, like Chrome & FF: https://bugs.webkit.org/show_bug.cgi?id=92749
 		// https://developer.mozilla.org/en-US/docs/Web-based_protocol_handlers
 #if os(OSX)
-		LSSetDefaultHandlerForURLScheme(scheme, NSBundle.mainBundle().bundleIdentifier)
+		LSSetDefaultHandlerForURLScheme(scheme, NSBundle.mainBundle().bundleIdentifier!)
 		warn("registered URL handler in OSX: \(scheme)")
 		//NSApp.registerServicesMenuSendTypes(sendTypes:[.kUTTypeFileURL], returnTypes:nil)
 		// http://stackoverflow.com/questions/20461351/how-do-i-enable-services-which-operate-on-selected-files-and-folders
@@ -279,7 +282,7 @@ class AppScriptRuntime: NSObject, AppScriptExports  {
 #endif
 	}
 
-	func postNotification(_ title: String? = nil, _ subtitle: String? = nil, _ msg: String?, _ id: String? = nil) {
+	func postNotification(title: String? = nil, _ subtitle: String? = nil, _ msg: String?, _ id: String? = nil) {
 #if os(OSX)
 		let note = NSUserNotification()
 		note.title = title ?? ""

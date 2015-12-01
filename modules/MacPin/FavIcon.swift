@@ -63,7 +63,10 @@ let NSImageNameApplicationIcon = "icon"
 		})
 	}
 
-	override var description: String { return "<\(reflect(self).summary)> `\(url)`" }
+	override var description: String {
+    let mirror = Mirror(reflecting: self)
+    return "<\(mirror.description)> `\(url)`"
+  }
 	//deinit { warn(description) }
 /*
 	convenience init(url: NSURL) {
