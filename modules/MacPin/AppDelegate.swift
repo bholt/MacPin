@@ -7,7 +7,6 @@ import UIKit
 
 import ObjectiveC
 import WebKit
-import WebKitPrivates
 import Darwin
 
 // common AppDelegate code sharable between OSX and iOS (not much)

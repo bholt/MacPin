@@ -82,7 +82,7 @@ extension NSPasteboard {
 			}
 
 			if let url = urls.first {
-				addTypes([kUTTypeURL, NSStringPboardType], owner: nil) // *WebURLPboardType http://uti.schwa.io/identifier/public.url
+				addTypes([kUTTypeURL as String, NSStringPboardType], owner: nil) // *WebURLPboardType http://uti.schwa.io/identifier/public.url
 				setString(url.description, forType: kUTTypeURL as String) // -> public.url
 
 				setString(url.description, forType: NSStringPboardType as String) // -> text/plain

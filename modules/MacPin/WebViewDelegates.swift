@@ -91,8 +91,8 @@ extension WebViewController: WKNavigationDelegate {
 #if os(OSX)
 					let mousebtn = navigationAction.buttonNumber
 					let modkeys = navigationAction.modifierFlags
-					if (modkeys & NSEventModifierFlags.AlternateKeyMask).rawValue != 0 { NSWorkspace.sharedWorkspace().openURL(url) } //alt-click
-						else if (modkeys & NSEventModifierFlags.CommandKeyMask).rawValue != 0 { popup(MPWebView(url: url, agent: webView._customUserAgent)) } //cmd-click
+					if (modkeys.intersect(NSEventModifierFlags.AlternateKeyMask)).rawValue != 0 { NSWorkspace.sharedWorkspace().openURL(url) } //alt-click
+						else if (modkeys.intersect(NSEventModifierFlags.CommandKeyMask)).rawValue != 0 { popup(MPWebView(url: url, agent: webView._customUserAgent)) } //cmd-click
 						else if !jsdelegate.tryFunc("decideNavigationForClickedURL", url.description) { // allow override from JS
 							if navigationAction.targetFrame != nil && mousebtn == 1 { fallthrough } // left-click on in_frame target link
 							popup(MPWebView(url: url, agent: webView._customUserAgent)) // middle-clicked, or out of frame target link
@@ -222,7 +222,7 @@ extension WebViewController: WKNavigationDelegate {
 		// https://developer.mozilla.org/en-US/docs/Web/API/window.open
 		// https://developer.apple.com/library/prerelease/ios/documentation/WebKit/Reference/WKWindowFeatures_Ref/index.html
 
-		let srcurl = navigationAction.sourceFrame?.request.URL ?? NSURL(string:String())!
+		let srcurl = navigationAction.sourceFrame.request.URL ?? NSURL(string:String())!
 		let openurl = navigationAction.request.URL ?? NSURL(string:String())!
 		let tgt = (navigationAction.targetFrame == nil) ? NSURL(string:String())! : navigationAction.targetFrame!.request.URL
 		let tgtdom = navigationAction.targetFrame?.request.mainDocumentURL ?? NSURL(string:String())!

@@ -24,7 +24,7 @@ import SSKeychain // https://github.com/soffes/sskeychain
 
 extension JSValue {
 	func tryFunc (method: String, argv: [AnyObject]) -> Bool {
-		if self.isObject() && self.hasProperty(method) {
+		if self.isObject && self.hasProperty(method) {
 			warn("this.\(method) <- \(argv)")
 			var ret = self.invokeMethod(method, withArguments: argv)
 			if let bool = ret.toObject() as? Bool { return bool }
@@ -158,7 +158,7 @@ class AppScriptRuntime: NSObject, AppScriptExports  {
 			}
 
 			if let jsval = loadAppScript(app_js.description) {
-				if jsval.isObject() {
+				if jsval.isObject {
 					warn("\(app_js) loaded as AppScriptRuntime.shared.jsdelegate")
 					jsdelegate = jsval
 				}
@@ -167,7 +167,7 @@ class AppScriptRuntime: NSObject, AppScriptExports  {
 	}
 
 	func loadAppScript(urlstr: String) -> JSValue? {
-		if let scriptURL = NSURL(string: urlstr), script = NSString(contentsOfURL: scriptURL, encoding: NSUTF8StringEncoding, error: nil) {
+		if let scriptURL = NSURL(string: urlstr), script = try? NSString(contentsOfURL: scriptURL, encoding: NSUTF8StringEncoding) {
 			// FIXME: script code could be loaded from anywhere, exploitable?
 			warn("\(scriptURL): read")
 
@@ -183,7 +183,7 @@ class AppScriptRuntime: NSObject, AppScriptExports  {
 			if JSCheckScriptSyntax(
 				/*ctx:*/ context.JSGlobalContextRef,
 				/*script:*/ JSStringCreateWithCFString(script as CFString),
-				/*sourceURL:*/ JSStringCreateWithCFString(scriptURL.absoluteString! as CFString),
+				/*sourceURL:*/ JSStringCreateWithCFString(scriptURL.absoluteString as CFString),
 				/*startingLineNumber:*/ Int32(1),
 				/*exception:*/ UnsafeMutablePointer(exception.JSValueRef)
 			) {
@@ -196,8 +196,8 @@ class AppScriptRuntime: NSObject, AppScriptExports  {
 				// hmm, using self.context for the syntax check seems to evaluate the contents anyways
 				// need to make a throwaway dupe of it
 				warn("bad syntax: \(scriptURL)")
-				if exception.isObject() { warn("got errObj") }
-				if exception.isString() { warn(exception.toString()) }
+				if exception.isObject { warn("got errObj") }
+				if exception.isString { warn(exception.toString()) }
 				/*
 				var errMessageJSC = JSValueToStringCopy(context.JSGlobalContextRef, exception.JSValueRef, UnsafeMutablePointer(nil))
 				var errMessageCF = JSStringCopyCFString(kCFAllocatorDefault, errMessageJSC) //as String
@@ -376,7 +376,7 @@ class AppScriptRuntime: NSObject, AppScriptExports  {
 	func REPL() {
 		termiosREPL({ [unowned self] (line: String) -> Void in
 			// jsdelegate.tryFunc("termiosREPL", [line])
-			println(self.context.evaluateScript(line))
+			print(self.context.evaluateScript(line))
 		})
 	}
 	

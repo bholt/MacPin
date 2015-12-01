@@ -98,7 +98,7 @@ struct WeakThing<T: AnyObject> {
 		tabView.selectNextTabViewItem(self) //safari behavior
 	}
 
-	override func tabView(tabView: NSTabView, willSelectTabViewItem tabViewItem: NSTabViewItem) {
+	override func tabView(tabView: NSTabView, willSelectTabViewItem tabViewItem: NSTabViewItem?) {
 		super.tabView(tabView, willSelectTabViewItem: tabViewItem)
 		//if omnibox.webview != nil { omnibox.unbind("webview") }
 		if let wv = tabViewItem.view as? MPWebView {
@@ -107,7 +107,7 @@ struct WeakThing<T: AnyObject> {
 		}
 	}
 
-	override func tabView(tabView: NSTabView, didSelectTabViewItem tabViewItem: NSTabViewItem) {
+	override func tabView(tabView: NSTabView, didSelectTabViewItem tabViewItem: NSTabViewItem?) {
 		super.tabView(tabView, didSelectTabViewItem: tabViewItem)
 		if let window = view.window, view = tabViewItem.view {
 			window.makeFirstResponder(view) // steal app focus to whatever the tab represents
@@ -119,7 +119,7 @@ struct WeakThing<T: AnyObject> {
 		if tabView.tabViewItems.count == 0 { view.window?.performClose(nil) }
 	}
 
-	override func toolbarAllowedItemIdentifiers(toolbar: NSToolbar) -> [AnyObject] {
+	override func toolbarAllowedItemIdentifiers(toolbar: NSToolbar) -> [String] {
 		let tabs = super.toolbarAllowedItemIdentifiers(toolbar) ?? []
 		warn(tabs.description)
 		return tabs + [
@@ -143,7 +143,7 @@ struct WeakThing<T: AnyObject> {
 		]
 	}
 
-	override func toolbarDefaultItemIdentifiers(toolbar: NSToolbar) -> [AnyObject] {
+	override func toolbarDefaultItemIdentifiers(toolbar: NSToolbar) -> [String] {
 		let tabs = super.toolbarDefaultItemIdentifiers(toolbar) ?? []
 		return [BrowserButtons.Share.rawValue, BrowserButtons.NewTab.rawValue] + tabs + [BrowserButtons.OmniBox.rawValue] // [NSToolbarFlexibleSpaceItemIdentifier]
 		//tabviewcontroller remembers where tabs was and keeps pushing new tabs to that position
@@ -158,7 +158,7 @@ struct WeakThing<T: AnyObject> {
 			ti.paletteLabel = itemIdentifier
 
 			let btn = NSButton()
-			let btnCell = btn.cell() as! NSButtonCell
+			let btnCell = btn.cell as! NSButtonCell
 			//btnCell.controlSize = .SmallControlSize
 			btn.toolTip = itemIdentifier
 			btn.image = NSImage(named: NSImageNamePreferencesGeneral) // https://hetima.github.io/fucking_nsimage_syntax/
@@ -198,7 +198,7 @@ struct WeakThing<T: AnyObject> {
 					let seg = NSSegmentedControl()
 					seg.segmentCount = 2
 					seg.segmentStyle = .Separated
-					let segCell = seg.cell() as! NSSegmentedCell
+					let segCell = seg.cell as! NSSegmentedCell
 					segCell.trackingMode = .Momentary
 					seg.action = Selector("goBack:")
 
@@ -276,7 +276,7 @@ struct WeakThing<T: AnyObject> {
 		view.layer?.masksToBounds = true // include layer contents in clipping effects
 		view.canDrawSubviewsIntoLayer = true // coalesce all subviews' layers into this one
 
-		view.autoresizingMask = .ViewWidthSizable | .ViewHeightSizable //resize tabview to match parent ContentView size
+		view.autoresizingMask = [.ViewWidthSizable, .ViewHeightSizable] //resize tabview to match parent ContentView size
 		view.autoresizesSubviews = true // resize tabbed subviews based on their autoresizingMasks
 		transitionOptions = .None //.Crossfade .SlideUp/Down/Left/Right/Forward/Backward
 
@@ -373,7 +373,7 @@ class BrowserViewController: TabViewController, BrowserScriptExports {
 			// crashes if you pass in a non [MPWebView] array from JS
 			for webview in tabs { //removals
 				//if !contains(newValue, webview) { // crashes
-				if (find(newValue, webview) ?? -1) < 0 {
+				if (newValue.indexOf(webview) ?? -1) < 0 {
 					if let wvc = childViewControllers.filter({ ($0 as? WebViewControllerOSX)?.webview === webview }).first as? WebViewControllerOSX {
 						wvc.removeFromParentViewController()
 					}
@@ -381,7 +381,7 @@ class BrowserViewController: TabViewController, BrowserScriptExports {
 			}
 			for webview in newValue { //additions
 				//if !contains(tabs, webview) { // crashes
-				if (find(tabs, webview) ?? -1) < 0 {
+				if (tabs.indexOf(webview) ?? -1) < 0 {
 					addChildViewController(WebViewControllerOSX(webview: webview))
 				}
 			}
@@ -550,7 +550,7 @@ class BrowserViewController: TabViewController, BrowserScriptExports {
 			//presentViewControllerAsSheet(omnibox) // modal, yuck
 			var poprect = view.bounds
 			poprect.size.height -= omnibox.preferredContentSize.height + 12 // make room at the top to stuff the popover
-			presentViewController(omnibox, asPopoverRelativeToRect: poprect, ofView: view, preferredEdge: NSMaxYEdge, behavior: NSPopoverBehavior.Transient)
+			presentViewController(omnibox, asPopoverRelativeToRect: poprect, ofView: view, preferredEdge: NSRectEdge.MaxY, behavior: NSPopoverBehavior.Transient)
 		}
 	}
 
@@ -582,7 +582,7 @@ class BrowserViewController: TabViewController, BrowserScriptExports {
 	func printTab() {
 		// https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/Printing/osxp_printapps/osxp_printapps.html#//apple_ref/doc/uid/20000861-BAJBFGED
 		//var printer = NSPrintOperation(view: tabSelected!.view, printInfo: NSPrintInfo.sharedPrintInfo()) //same as webview.print()
-		var printer = NSPrintOperation(view: view, printInfo: NSPrintInfo.sharedPrintInfo()) // prints 8pgs of blurView
+		let printer = NSPrintOperation(view: view, printInfo: NSPrintInfo.sharedPrintInfo()) // prints 8pgs of blurView
 		printer.runOperation()
 	}
 
@@ -613,7 +613,7 @@ class BrowserViewController: TabViewController, BrowserScriptExports {
 				case let urlstr as String: AppScriptRuntime.shared.jsdelegate.tryFunc("launchURL", urlstr)
 				// or fire event in jsdelegate if string, NSURLs do launchURL
 				case let dict as [String:AnyObject]: tabSelected = MPWebView(object: dict)
-                case let arr as [String] where arr.count > 0: AppScriptRuntime.shared.jsdelegate.tryFunc(arr.first!, argv: Array(dropFirst(arr)))
+                case let arr as [String] where arr.count > 0: AppScriptRuntime.shared.jsdelegate.tryFunc(arr.first!, argv: Array(arr.dropFirst()))
 				default: warn("invalid shortcut object type!")
 			}
 		}

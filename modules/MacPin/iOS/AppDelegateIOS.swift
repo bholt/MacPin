@@ -61,7 +61,7 @@ extension AppDelegateIOS: UIApplicationDelegate { //UIResponder
 
 		browserController.view.frame = UIScreen.mainScreen().bounds
 
-		if !AppScriptRuntime.shared.context.objectForKeyedSubscript("$").objectForKeyedSubscript("browser").isObject() { //first run, not an app restore
+		if !AppScriptRuntime.shared.context.objectForKeyedSubscript("$").objectForKeyedSubscript("browser").isObject { //first run, not an app restore
 			AppScriptRuntime.shared.context.objectForKeyedSubscript("$").setObject(browserController, forKeyedSubscript: "browser")
 			AppScriptRuntime.shared.loadSiteApp() // load app.js, if present
 			AppScriptRuntime.shared.jsdelegate.tryFunc("AppFinishedLaunching")

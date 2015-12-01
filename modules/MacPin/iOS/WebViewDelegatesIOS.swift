@@ -22,7 +22,7 @@ extension WebViewControllerIOS: WKUIDelegate {
 		self.presentViewController(alerter, animated: true, completion: nil)
 	}
 
-	func webView(webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?, initiatedByFrame frame: WKFrameInfo, completionHandler: (String!) -> Void) {
+	func webView(webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?, initiatedByFrame frame: WKFrameInfo, completionHandler: (String?) -> Void) {
 		let alerter = UIAlertController(title: webView.title, message: prompt, preferredStyle: .Alert)
 
 		//var promptTF: UITextField?
@@ -51,7 +51,7 @@ extension WebViewControllerIOS: WKUIDelegate {
 extension WebViewControllerIOS: WKNavigationDelegate {
 
 	func webView(webView: WKWebView, didReceiveAuthenticationChallenge challenge: NSURLAuthenticationChallenge,
-		completionHandler: (NSURLSessionAuthChallengeDisposition, NSURLCredential!) -> Void) {
+		completionHandler: (NSURLSessionAuthChallengeDisposition, NSURLCredential?) -> Void) {
 
 		if let am = challenge.protectionSpace.authenticationMethod where am == NSURLAuthenticationMethodServerTrust {
 			completionHandler(.PerformDefaultHandling, nil)

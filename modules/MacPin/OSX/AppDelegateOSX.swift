@@ -172,7 +172,7 @@ extension AppDelegateOSX: NSApplicationDelegate {
 
 		//warn("focus is on `\(windowController.window?.firstResponder)`")
 
-		for (idx, arg) in enumerate(Process.arguments) {
+		for (idx, arg) in Process.arguments.enumerate() {
 			switch (arg) {
 				case "-i":
 					if isatty(1) == 1 { AppScriptRuntime.shared.REPL() } //open a JS console on the terminal, if present
@@ -192,7 +192,7 @@ extension AppDelegateOSX: NSApplicationDelegate {
 							break
 						}
 
-						if let tabnum = Process.arguments[idx + 1].toInt() where browserController.tabs.count >= tabnum { // next argv should be tab number
+						if let tabnum = Int(Process.arguments[idx + 1]) where browserController.tabs.count >= tabnum { // next argv should be tab number
 							browserController.tabs[tabnum].REPL() // open a JS Console on the requested tab number
 						} else {
 							browserController.tabs.first?.REPL() //open a JS console for the first tab WebView on the terminal, if present
@@ -244,7 +244,7 @@ extension AppDelegateOSX: NSApplicationDelegate {
 
 	// handles drag-to-dock-badge, /usr/bin/open and argv[1] requests specifiying urls & local pathnames
 	func application(theApplication: NSApplication, openFile filename: String) -> Bool {
-		if let ftype = NSWorkspace.sharedWorkspace().typeOfFile(filename, error: nil) {
+		if let ftype = try? NSWorkspace.sharedWorkspace().typeOfFile(filename) {
 			switch ftype {
 				//case "public.data":
 				//case "public.html":
@@ -298,7 +298,7 @@ extension AppDelegateOSX: NSUserNotificationCenterDelegate {
 
 extension AppDelegateOSX: NSWindowRestoration {
 	// https://developer.apple.com/library/mac/documentation/General/Conceptual/MOSXAppProgrammingGuide/CoreAppDesign/CoreAppDesign.html#//apple_ref/doc/uid/TP40010543-CH3-SW35
-	class func restoreWindowWithIdentifier(identifier: String, state: NSCoder, completionHandler: ((NSWindow!,NSError!) -> Void)) {
+	class func restoreWindowWithIdentifier(identifier: String, state: NSCoder, completionHandler: ((NSWindow?,NSError?) -> Void)) {
 		if let app = NSApplication.sharedApplication().delegate as? AppDelegateOSX, let window = app.windowController.window {
 			completionHandler(window, nil)
 			//WKWebView._restoreFromSessionStateData ...

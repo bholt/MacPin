@@ -103,7 +103,7 @@ class URLAddressField: NSTextField { // FIXMEios UILabel + UITextField
 
 		urlbox.delegate = self
 
-		if let cell = urlbox.cell() as? NSTextFieldCell {
+		if let cell = urlbox.cell as? NSTextFieldCell {
 			cell.placeholderString = "Navigate to URL"
 			cell.scrollable = true
 			cell.action = Selector("userEnteredURL")

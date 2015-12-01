@@ -46,7 +46,7 @@ extension UIView {
 	func switchToNextTab()
 }
 
-@objc class MobileBrowserViewController: UIViewController, MobileBrowserScriptExports {
+class MobileBrowserViewController: UIViewController, MobileBrowserScriptExports {
 	//var frame: CGRect = UIScreen.mainScreen().applicationFrame
 
 	var kvoCtx = "kvo"
@@ -235,7 +235,7 @@ extension UIView {
 	override var description: String { return "<\(reflect(self).summary)> `\(title ?? String())`" }
 
 	func indexOfChildViewController(vc: UIViewController) -> Int {
-		for (index, el) in enumerate(childViewControllers) {
+		for (index, el) in (childViewControllers).enumerate() {
 			if el === vc { return index }
 		}
 		return -3

@@ -19,7 +19,7 @@ import Prompt // https://github.com/neilpa/swift-libedit
 var prompter: Async? = nil
 #endif
 
-func warn(_ msg: String = String(), function: StaticString = __FUNCTION__, file: StaticString = __FILE__, line: UWord = __LINE__, column: UWord = __COLUMN__) {
+func warn(msg: String = String(), function: StaticString = __FUNCTION__, file: StaticString = __FILE__, line: UInt = __LINE__, column: UInt = __COLUMN__) {
 	// https://github.com/swisspol/XLFacility ?
 	NSFileHandle.fileHandleWithStandardError().writeData(("[\(NSDate())] <\(file):\(line):\(column)> [\(function)] \(msg)\n").dataUsingEncoding(NSUTF8StringEncoding)!)
 #if WARN2NSLOG
@@ -44,11 +44,11 @@ func loadUserScriptFromBundle(basename: String, webctl: WKUserContentController,
 	if let scriptUrl = NSBundle.mainBundle().URLForResource(basename, withExtension: "js") where !basename.isEmpty {
 		warn("loading userscript: \(scriptUrl)")
 		var script = WKUserScript(
-			source: NSString(contentsOfURL: scriptUrl, encoding: NSUTF8StringEncoding, error: nil) as! String,
+			source: (try! NSString(contentsOfURL: scriptUrl, encoding: NSUTF8StringEncoding)) as String,
 		    injectionTime: inject,
 		    forMainFrameOnly: onlyForTop
 		)
-		if webctl.userScripts.filter({$0 as! WKUserScript == script}).count < 1 { // don't re-add identical userscripts
+		if webctl.userScripts.filter({$0 == script}).count < 1 { // don't re-add identical userscripts
 		//if (find(webctl.userScripts, script) ?? -1) < 0 { // don't re-add identical userscripts
 			webctl.addUserScript(script)
 		} else { warn("\(scriptUrl) already loaded!"); return false }
@@ -77,7 +77,7 @@ func loadUserScriptFromBundle(basename: String, webctl: WKUserContentController,
 func validateURL(urlstr: String) -> NSURL? { // fallback: (String -> NSURL?)? = nil
 	// https://github.com/WebKit/webkit/blob/master/Source/WebKit/ios/Misc/WebNSStringExtrasIOS.m
 	if urlstr.isEmpty { return nil }
-	if let urlp = NSURLComponents(string: urlstr) where find(urlstr, " ") == nil && !urlstr.hasPrefix("?") {
+	if let urlp = NSURLComponents(string: urlstr) where urlstr.characters.indexOf(" ") == nil && !urlstr.hasPrefix("?") {
 		if urlstr.hasPrefix("/") || urlstr.hasPrefix("~/") { urlp.scheme = "file" } // FIXME: check if bare filepath points to actual file/dir
 		if !((urlp.path ?? "").isEmpty) && (urlp.scheme ?? "").isEmpty && (urlp.host ?? "").isEmpty { // 'example.com' & 'example.com/foobar'
 			urlp.scheme = "http"
@@ -110,12 +110,12 @@ func validateURL(urlstr: String) -> NSURL? { // fallback: (String -> NSURL?)? = 
 	return nil
 }
 
-func termiosREPL(_ eval:((String)->Void)? = nil, ps1: StaticString = __FILE__, ps2: StaticString = __FUNCTION__, abort:(()->Void)? = nil) {
+func termiosREPL(eval:((String)->Void)? = nil, ps1: StaticString = __FILE__, ps2: StaticString = __FUNCTION__, abort:(()->Void)? = nil) {
 #if arch(x86_64) || arch(i386)
 	prompter = Async.background {
 		let prompt = Prompt(argv0: Process.unsafeArgv[0]) // should make this a singleton, so the AppDel termination can kill it
 		while (true) {
-			print("\(ps1): ") // prompt prefix
+			print("\(ps1): ", terminator: "") // prompt prefix
 		    if let line = prompt.gets() { // R: blocks here until Enter pressed
 				print("\(ps2): ") // result prefix
 				dispatch_async(dispatch_get_main_queue(), { () -> Void in //return to main thread to evaluate code
@@ -124,12 +124,12 @@ func termiosREPL(_ eval:((String)->Void)? = nil, ps1: StaticString = __FILE__, p
 		    } else { // stdin closed
 				dispatch_async(dispatch_get_main_queue(), { () -> Void in
 					if let abort = abort { abort() }
-						else { println("Got EOF from stdin, closing REPL!") }
+						else { print("Got EOF from stdin, closing REPL!") }
 				})
 				break
 			}
 			// L: command completed, restart loop
-			println() //newline
+			print("") //newline
 		}
 		// user CTRL-D'd!
 	}

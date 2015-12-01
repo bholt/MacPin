@@ -10,7 +10,7 @@ import WebKitPrivates
 		super.viewDidLoad()
 		//view.wantsLayer = true //use CALayer to coalesce views
 		//^ default=true:  https://github.com/WebKit/webkit/blob/master/Source/WebKit2/UIProcess/API/mac/WKView.mm#L3641
-		view.autoresizingMask = .ViewWidthSizable | .ViewHeightSizable
+		view.autoresizingMask = [.ViewWidthSizable, .ViewHeightSizable]
 
 		if let wkview = view.subviews.first as? WKView {
 			//wkview.setValue(false, forKey: "shouldExpandToViewHeightForAutoLayout") //KVO
@@ -97,7 +97,7 @@ extension WebViewControllerOSX: NSMenuDelegate {
 		//if menu.tag == 1 //backlist
 		for histItem in webview.backForwardList.backList {
 			if let histItem = histItem as? WKBackForwardListItem {
-				let mi = NSMenuItem(title:(histItem.title ?? histItem.URL.absoluteString!), action:Selector("gotoHistoryMenuURL:"), keyEquivalent:"" )
+				let mi = NSMenuItem(title:(histItem.title ?? histItem.URL.absoluteString), action:Selector("gotoHistoryMenuURL:"), keyEquivalent:"" )
 				mi.representedObject = histItem.URL
 				mi.target = self
 			}
@@ -126,9 +126,9 @@ extension WebViewControllerOSX { // AppGUI funcs
 	func shareButtonClicked(sender: AnyObject?) {
 		if let btn = sender as? NSView {
 			if let url = webview.URL {
-				var sharer = NSSharingServicePicker(items: [url])
+				let sharer = NSSharingServicePicker(items: [url])
 				sharer.delegate = self
-				sharer.showRelativeToRect(btn.bounds, ofView: btn, preferredEdge: NSMinYEdge)
+				sharer.showRelativeToRect(btn.bounds, ofView: btn, preferredEdge: NSRectEdge.MinY)
 				//sharer.style = 1 // https://github.com/iljaiwas/NSSharingPickerTest/pull/1
 			}
 		}

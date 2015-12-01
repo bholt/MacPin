@@ -7,7 +7,7 @@ import WebKit
 extension WebViewControllerOSX: WKUIDelegate {
 
 	func webView(webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: () -> Void) {
-		var alert = NSAlert()
+		let alert = NSAlert()
 		alert.messageText = webView.title
 		alert.addButtonWithTitle("Dismiss")
 		alert.informativeText = message
@@ -17,7 +17,7 @@ extension WebViewControllerOSX: WKUIDelegate {
 	}
 
 	func webView(webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: (Bool) -> Void) {
-		var alert = NSAlert()
+		let alert = NSAlert()
 		alert.messageText = webView.title
 		alert.addButtonWithTitle("OK")
 		alert.addButtonWithTitle("Cancel")
@@ -26,13 +26,13 @@ extension WebViewControllerOSX: WKUIDelegate {
 		displayAlert(alert) { (response:NSModalResponse) -> Void in completionHandler(response == NSAlertFirstButtonReturn ? true : false) }
 	}
 
-	func webView(webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?, initiatedByFrame frame: WKFrameInfo, completionHandler: (String!) -> Void) {
-		var alert = NSAlert()
+	func webView(webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?, initiatedByFrame frame: WKFrameInfo, completionHandler: (String?) -> Void) {
+		let alert = NSAlert()
 		alert.messageText = webView.title
 		alert.addButtonWithTitle("Submit")
 		alert.informativeText = prompt
 		alert.icon = NSApplication.sharedApplication().applicationIconImage
-		var input = NSTextField(frame: NSMakeRect(0, 0, 200, 24))
+		let input = NSTextField(frame: NSMakeRect(0, 0, 200, 24))
 		input.stringValue = defaultText ?? ""
 		input.editable = true
  		alert.accessoryView = input
@@ -60,7 +60,7 @@ extension WebViewControllerOSX: WKUIDelegate {
 extension WebViewControllerOSX: WKNavigationDelegate {
 
 	func webView(webView: WKWebView, didReceiveAuthenticationChallenge challenge: NSURLAuthenticationChallenge,
-		completionHandler: (NSURLSessionAuthChallengeDisposition, NSURLCredential!) -> Void) {
+		completionHandler: (NSURLSessionAuthChallengeDisposition, NSURLCredential?) -> Void) {
 
 		if let am = challenge.protectionSpace.authenticationMethod where am == NSURLAuthenticationMethodServerTrust {
 			completionHandler(.PerformDefaultHandling, nil)
