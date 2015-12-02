@@ -26,10 +26,10 @@ var customizeBG = function(el) {
 	}
   
 	if (window.macpinIsTransparent) {
-    css.innerHTML = "body { background-color: rgba(250, 250, 250, 0.2) !important; }";
+    css.innerHTML = "body { background-color: rgba(250, 250, 250, 0.05) !important; }";
   }
   
-  css.innerHTML += ".hp-button { background: transparent !important; color: #333 !important; } .comment-thread { background-color: transparent; } .comment-thread.highlight { background-color: #fff; } header, .main-header-right { background-color: #0b0b0b !important; }";
+  css.innerHTML += "button.hp-button { background: transparent !important; color: #fff !important; } .comment-thread { background-color: transparent; } .comment-thread.highlight { background-color: #fff; } header, .main-header-right { background-color: #0b0b0b !important; }";
 	document.head.appendChild(css);
 };
 
