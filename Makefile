@@ -137,9 +137,9 @@ $(appdir)/%.app: $(macpin_sites)/% $(macpin_sites)/%/* $(appdir)/%.app/Contents/
 	plutil -replace NSHumanReadableCopyright -string "built $(shell date) by $(shell id -F)" $@/Contents/Info.plist
 	[ ! -f "$(macpin_sites)/$*/Makefile" ] || $(MAKE) -C $@/Contents/Resources
 	[ ! -n "$(codesign)" ] || codesign --verbose=4 -s $(appsig) -f --deep --ignore-resources --entitlements $(outdir)/entitlements.plist $@
-	-codesign --display -r- --verbose=4 --entitlements :- $@
-	-spctl --verbose=4 --assess --type execute $@
-	-asctl container acl list -file $@
+	codesign --display -r- --verbose=4 --entitlements :- $@
+	spctl --verbose=4 --assess --type execute $@
+	# asctl container acl list -file $@
 	@touch $@
 #xattr -w com.apple.application-instance $(shell echo uuidgen) $@
 
@@ -187,7 +187,7 @@ $(appdir)/%.share.appex: $(icons)/%.icns $(macpin_sites)/$*/appex.share.plist $(
 	plutil -replace NSExtension -json "{}" $@/Contents/Info.plist
 	/usr/libexec/PlistBuddy -c 'merge $(macpin_sites)/$*/appex.share.plist :NSExtension' -c save $@/Contents/Info.plist
 	-codesign -s - -f --entitlements entitlements.plist $@ && codesign -dv $@
-	-asctl container acl list -file $@
+	# -asctl container acl list -file $@
 
 ifeq ($(sdk)-$(arch),iphonesimulator-x86_64)
 install:
