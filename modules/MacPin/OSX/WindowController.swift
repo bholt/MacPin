@@ -10,7 +10,7 @@ class WindowController: NSWindowController, NSWindowDelegate {
 		
 		let appearance = NSUserDefaults.standardUserDefaults().stringForKey("AppleInterfaceStyle") ?? "Light"
 		if let window = window {
-			window.collectionBehavior = [.FullScreenPrimary, .ParticipatesInCycle, .Managed, .CanJoinAllSpaces]
+			window.collectionBehavior = [.FullScreenPrimary, .ParticipatesInCycle, .Managed]
 			window.styleMask |= NSUnifiedTitleAndToolbarWindowMask
 			window.movableByWindowBackground = true
 			window.backgroundColor = NSColor.whiteColor()
