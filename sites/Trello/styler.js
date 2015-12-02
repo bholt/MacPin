@@ -10,7 +10,7 @@ window.addEventListener("load", function(event) {
 }, false);
 
 window.addEventListener("MacPinWebViewChanged", function(event) {
-	macpinIsTransparent = event.detail["transparent"];
+	macpinIsTransparent = event.detail.transparent;
 	customizeBG();
 }, false);
 
@@ -26,7 +26,12 @@ var customizeBG = function(el) {
 	}
 
 	var stockTrelloBlue = "rgb(0, 121, 191)";
-	if ( (document.body.style.backgroundColor == stockTrelloBlue) && overrideStockTrelloBlue && macpinIsTransparent) {
+	if (window.macpinIsTransparent) {
+    var grp = /rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(,\s*\d+[\.\d+]*)*\)/g.exec(document.body.style.backgroundColor);
+    css.innerHTML = "body { background-color: rgba(" + grp.slice(1,4).join(", ") + ", 0.2) !important; }";
+      // css.innerHTML = "body { background-color: rgba(125, 126, 244, 0.07) !important; } ";
+      // css.innerHTML = "body { opacity: 0.07 !important; }"; 
+  } else if ( (document.body.style.backgroundColor == stockTrelloBlue) && overrideStockTrelloBlue && macpinIsTransparent) {
 		css.innerHTML = 'body { background-color: rgba('+overrideStockTrelloBlue+') !important; } ';
 		// could get rgb=getComputedStyle(document.body).backgroundColor.match(/[\d\.]+/g) and convert from original rgb() to rgba()
 		// http://stackoverflow.com/q/6672374/3878712 http://davidwalsh.name/detect-invert-color
