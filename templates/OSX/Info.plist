@@ -384,5 +384,11 @@
 	<true/>
 	<key>LSMinimumSystemVersion</key>
 	<string>10.10.3</string>
+  
+	<key>NSAppTransportSecurity</key>
+	<dict>
+  	<key>NSAllowsArbitraryLoads</key><true/>
+  </dict>
+  
 </dict>
 </plist>
