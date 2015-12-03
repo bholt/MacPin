@@ -29,7 +29,7 @@ var customizeBG = function(el) {
     css.innerHTML = "body { background-color: rgba(250, 250, 250, 0.05) !important; }";
   }
   
-  css.innerHTML += "button.hp-button { background: transparent !important; color: #fff !important; } .comment-thread { background-color: transparent; } .comment-thread.highlight { background-color: #fff; } header, .main-header-right { background-color: #0b0b0b !important; }";
+  css.innerHTML += "button.hp-button { background: transparent !important; color: #fff !important; } .comment-thread { background-color: transparent; } .comment-thread.highlight { background-color: #fff; } header, .main-header-right { background-color: #0b0b0b !important; } .code { font-family: Input !important; font-size: 14px; }";
 	document.head.appendChild(css);
 };
 
